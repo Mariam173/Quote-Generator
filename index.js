@@ -1,51 +1,41 @@
-const quotes = [
-    {
-      text: "The best way to predict the future is to invent it.",
-      author: "Alan kay"
-    },
-    {
-      text: "Technology is best when it brings people together",
-      author: "Matt Mullenweg"
-    },
-    {
-      text: "programs must be written for people to read, and only incidentally for machines to execute",
-      author: "Harold Abelson"
-    },
-    {
-      text: "Talk is cheap. Show me the code",
-      author: "Linus Torvalds"
-    },
-    {
-      text: "first solve a problem. Then, write the code ",
-      author: "John Johnson"
-    },
-
-    {
-      text:"The computer was born to solve problems that did not exist before",
-      author: "Bill Gates"
-    },
-
-    {
-      text:"Your most unhappy customers are your greatest source of learning.",
-      author:"Bill Gates"
-    }
-  ];
-
 let quoteHistory = [];
 let currentIndex = -1;
 
-function getNewQuote() {
-  const randomIndex = Math.floor(Math.random() * quotes.length);
-  const quote = quotes[randomIndex];
+async function getNewQuote() {
+  try {
+    const response = await fetch("https://api.api-ninjas.com/v1/quotes", {
+      method: "GET",
+      headers: {
+        'X-Api-Key': 'ntXButKCbkHm/7bh+dLlRg==UN0vvsWwz5KwwIpc'  // ✅ Your key here
+      }
+    });
 
-  // Avoid duplicates in a row
-  if (quoteHistory[currentIndex]?.text !== quote.text) {
-    quoteHistory.push(quote);
-    currentIndex++;
+    const data = await response.json();
+
+    // Safety check if API returned anything
+    if (!data || data.length === 0) {
+      throw new Error("No quotes returned.");
+    }
+
+    const quote = {
+      quote: data[0].quote,
+      author: data[0].author
+    };
+
+    // Avoid duplicates
+    if (quoteHistory[currentIndex]?.quote !== quote.quote) {
+      quoteHistory.push(quote);
+      currentIndex++;
+    }
+
+    displayQuote(quote);
+    document.getElementById("prev-btn").disabled = currentIndex <= 0;
+
+  } catch (error) {
+    console.error("Error fetching quote:", error);
+    document.getElementById("quote").textContent = "Couldn't fetch quote.";
+    document.getElementById("author").textContent = "";
   }
-
-  displayQuote(quote);
-  document.getElementById("prev-btn").disabled = currentIndex <= 0;
 }
 
 function getPreviousQuote() {
@@ -58,6 +48,6 @@ function getPreviousQuote() {
 }
 
 function displayQuote(quote) {
-  document.getElementById('quote').textContent = `"${quote.text}"`;
-  document.getElementById('author').textContent = `- ${quote.author}`;
+  document.getElementById('quote').textContent = `${quote.quote}`;
+  document.getElementById('author').textContent = `– ${quote.author}`;
 }
